@@ -9,8 +9,17 @@ class DiskUsageVisualizer < Formula
     depends_on macos: :sonoma
 
     def install
-      system "bash", "build.sh"
-      prefix.install "build/DiskUsageVisualizer.app"
+      system "swift", "build", "-c", "release", "--disable-sandbox"
+
+      app = prefix/"DiskUsageVisualizer.app"
+      (app/"Contents/MacOS").mkpath
+      (app/"Contents/Resources").mkpath
+      cp ".build/release/DiskUsageVisualizer", app/"Contents/MacOS/DiskUsageVisualizer"
+      cp "Resources/Info.plist", app/"Contents/Info.plist"
+
+      system "codesign", "--force", "--sign", "-",
+             "--entitlements", "Resources/DiskUsageVisualizer.entitlements",
+             app.to_s
     end
 
     def caveats
